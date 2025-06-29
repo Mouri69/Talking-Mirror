@@ -114,6 +114,8 @@ button:active {
 
 .response-section {
     min-height: 100px;
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 .response-box {
@@ -121,8 +123,10 @@ button:active {
     border-radius: 15px;
     padding: 20px;
     min-height: 80px;
+    max-height: 350px;
+    overflow-y: auto;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     border-left: 5px solid #667eea;
     transition: all 0.3s ease;
 }
@@ -131,6 +135,8 @@ button:active {
     margin: 0;
     font-size: 1.1rem;
     line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 .placeholder {

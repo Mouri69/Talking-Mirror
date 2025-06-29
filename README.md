@@ -6,9 +6,11 @@ A reflective web app that talks back to you with personality, attitude, and some
 
 ### 🤖 AI-Powered Responses
 - **OpenAI Integration**: Uses GPT-3.5-turbo for intelligent, contextual responses
+- **Unlimited Conversations**: No token limits - talk as much as you want!
 - **Fallback Mode**: Works offline with pre-written responses if no API key is provided
 - **Smart Mood System**: AI adapts its personality based on the selected mood
 - **Real-time Generation**: Each response is unique and generated on-the-fly
+- **Free-flowing Chat**: Detailed, conversational responses with follow-up questions
 
 ### 🎭 Multiple Personalities
 The mirror has different moods that influence its AI responses:
@@ -78,9 +80,10 @@ Try typing messages like:
 
 ### API Settings
 - **Model**: GPT-3.5-turbo
-- **Max Tokens**: 150 (keeps responses concise)
-- **Temperature**: 0.8 (balanced creativity and consistency)
+- **Max Tokens**: 2000 (allows for detailed, unlimited conversations)
+- **Temperature**: 0.9 (creative and engaging responses)
 - **System Prompts**: Customized for each mood personality
+- **Conversation Style**: Free-flowing with follow-up questions and detailed insights
 
 ### Fallback Mode
 If you don't want to use AI or don't have an API key:
