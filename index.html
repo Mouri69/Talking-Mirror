@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🪞 Talking Mirror</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🪞 Talking Mirror</h1>
+            <p class="subtitle">Type your thoughts and see what the mirror reflects back...</p>
+        </header>
+
+        <main>
+            <div class="mirror-interface">
+                <div class="input-section">
+                    <textarea 
+                        id="userInput" 
+                        placeholder="Tell the mirror what's on your mind..."
+                        rows="3"
+                    ></textarea>
+                    <button id="submitBtn">Send to Mirror</button>
+                </div>
+
+                <div class="response-section">
+                    <div id="response" class="response-box">
+                        <p class="placeholder">The mirror is waiting for your reflection...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-section">
+                <button id="toggleHistory" class="history-toggle">
+                    📜 Show History
+                </button>
+                <div id="historyLog" class="history-log hidden">
+                    <h3>Your Conversations with the Mirror</h3>
+                    <div id="historyContent"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>🪞 A reflective web app that talks back</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
