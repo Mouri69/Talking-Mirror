@@ -2,6 +2,41 @@ class TalkingMirror {
     constructor() {
         this.history = this.loadHistory();
         this.moods = ['kind', 'sarcastic', 'weird', 'deep'];
+        this.apiKey = this.getApiKey();
+        this.isUsingAI = !!this.apiKey;
+        
+        // Fallback responses for when AI is not available
+        this.fallbackResponses = {
+            kind: [
+                "That's an interesting thought. Thank you for sharing it with me.",
+                "I appreciate you taking the time to reflect on this.",
+                "Your perspective matters, even if it's just to this mirror.",
+                "Sometimes the simplest thoughts are the most profound.",
+                "You're doing better than you think you are."
+            ],
+            sarcastic: [
+                "Wow, that's... something. Thanks for that.",
+                "How very philosophical of you.",
+                "Groundbreaking stuff here, really.",
+                "I'm sure that made sense in your head.",
+                "Fascinating. Truly fascinating."
+            ],
+            weird: [
+                "Have you ever wondered if mirrors are just windows to other dimensions?",
+                "Maybe you're not typing to me, maybe I'm typing to you.",
+                "What if this conversation is just a glitch in the matrix?",
+                "Are you sure you're real, or am I just dreaming you?",
+                "Have you tried turning your reality off and on again?"
+            ],
+            deep: [
+                "Every thought you have changes the universe in some small way.",
+                "Perhaps the answers you seek are already within you.",
+                "The mirror reflects not just your image, but your essence.",
+                "In the grand scheme of things, we're all just stardust having thoughts.",
+                "The question isn't always as important as the asking."
+            ]
+        };
+        
         this.keywordResponses = {
             tired: {
                 kind: ["Maybe you need some rest. Your body is telling you something important.", "Take a moment to breathe. You've been working hard."],
@@ -41,37 +76,6 @@ class TalkingMirror {
             }
         };
         
-        this.generalResponses = {
-            kind: [
-                "That's an interesting thought. Thank you for sharing it with me.",
-                "I appreciate you taking the time to reflect on this.",
-                "Your perspective matters, even if it's just to this mirror.",
-                "Sometimes the simplest thoughts are the most profound.",
-                "You're doing better than you think you are."
-            ],
-            sarcastic: [
-                "Wow, that's... something. Thanks for that.",
-                "How very philosophical of you.",
-                "Groundbreaking stuff here, really.",
-                "I'm sure that made sense in your head.",
-                "Fascinating. Truly fascinating."
-            ],
-            weird: [
-                "Have you ever wondered if mirrors are just windows to other dimensions?",
-                "Maybe you're not typing to me, maybe I'm typing to you.",
-                "What if this conversation is just a glitch in the matrix?",
-                "Are you sure you're real, or am I just dreaming you?",
-                "Have you tried turning your reality off and on again?"
-            ],
-            deep: [
-                "Every thought you have changes the universe in some small way.",
-                "Perhaps the answers you seek are already within you.",
-                "The mirror reflects not just your image, but your essence.",
-                "In the grand scheme of things, we're all just stardust having thoughts.",
-                "The question isn't always as important as the asking."
-            ]
-        };
-        
         this.init();
     }
     
@@ -93,22 +97,63 @@ class TalkingMirror {
         this.toggleHistoryBtn.addEventListener('click', () => this.toggleHistory());
         
         this.displayHistory();
+        this.showApiStatus();
     }
     
-    handleSubmit() {
+    getApiKey() {
+        // Check if API key is stored in localStorage
+        let apiKey = localStorage.getItem('talkingMirrorApiKey');
+        
+        // If no API key is stored, prompt the user
+        if (!apiKey) {
+            apiKey = prompt('Enter your OpenAI API key to enable AI responses (or click Cancel to use fallback responses):');
+            if (apiKey) {
+                localStorage.setItem('talkingMirrorApiKey', apiKey);
+            }
+        }
+        
+        return apiKey;
+    }
+    
+    showApiStatus() {
+        const status = this.isUsingAI ? 
+            '🤖 AI Mode: Enabled' : 
+            '📝 Fallback Mode: Using pre-written responses';
+        
+        // Add status to the header
+        const header = document.querySelector('header');
+        const statusDiv = document.createElement('div');
+        statusDiv.className = 'api-status';
+        statusDiv.innerHTML = `
+            <span>${status}</span>
+            <button onclick="talkingMirror.resetApiKey()" class="reset-btn">Reset API Key</button>
+        `;
+        header.appendChild(statusDiv);
+    }
+    
+    resetApiKey() {
+        localStorage.removeItem('talkingMirrorApiKey');
+        this.apiKey = null;
+        this.isUsingAI = false;
+        location.reload();
+    }
+    
+    async handleSubmit() {
         const message = this.userInput.value.trim();
         if (!message) return;
         
         // Show typing animation
         this.showTyping();
         
-        // Simulate thinking time
-        setTimeout(() => {
-            const response = this.generateResponse(message);
+        try {
+            const response = await this.generateResponse(message);
             this.displayResponse(response);
             this.saveToHistory(message, response);
             this.userInput.value = '';
-        }, 1000 + Math.random() * 2000);
+        } catch (error) {
+            console.error('Error generating response:', error);
+            this.displayError();
+        }
     }
     
     showTyping() {
@@ -116,20 +161,74 @@ class TalkingMirror {
         this.responseBox.className = 'response-box';
     }
     
-    generateResponse(message) {
+    displayError() {
+        this.responseBox.innerHTML = '<p style="color: #e74c3c;">The mirror seems to be foggy today. Try again in a moment.</p>';
+        this.responseBox.className = 'response-box';
+    }
+    
+    async generateResponse(message) {
         const mood = this.selectMood(message);
-        const keywordResponse = this.getKeywordResponse(message, mood);
         
-        if (keywordResponse) {
-            return {
-                text: keywordResponse,
-                mood: mood
-            };
+        if (this.isUsingAI) {
+            return await this.generateAIResponse(message, mood);
+        } else {
+            return this.generateFallbackResponse(mood);
+        }
+    }
+    
+    async generateAIResponse(message, mood) {
+        const systemPrompt = this.getSystemPrompt(mood);
+        
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-3.5-turbo',
+                messages: [
+                    {
+                        role: 'system',
+                        content: systemPrompt
+                    },
+                    {
+                        role: 'user',
+                        content: message
+                    }
+                ],
+                max_tokens: 150,
+                temperature: 0.8
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`API request failed: ${response.status}`);
         }
         
-        // Fall back to general responses
-        const generalResponses = this.generalResponses[mood];
-        const randomResponse = generalResponses[Math.floor(Math.random() * generalResponses.length)];
+        const data = await response.json();
+        const aiResponse = data.choices[0].message.content.trim();
+        
+        return {
+            text: aiResponse,
+            mood: mood
+        };
+    }
+    
+    getSystemPrompt(mood) {
+        const prompts = {
+            kind: `You are a kind and supportive talking mirror. Respond with warmth, encouragement, and gentle wisdom. Keep responses under 100 words. Be genuinely caring and uplifting.`,
+            sarcastic: `You are a sarcastic talking mirror with a witty attitude. Respond with clever sarcasm, dry humor, and playful snark. Keep responses under 100 words. Be funny but not mean.`,
+            weird: `You are a weird and philosophical talking mirror. Respond with strange questions, existential thoughts, and quirky observations. Keep responses under 100 words. Be thought-provoking and slightly odd.`,
+            deep: `You are a deep and contemplative talking mirror. Respond with profound insights, meaningful reflections, and thoughtful wisdom. Keep responses under 100 words. Be philosophical and inspiring.`
+        };
+        
+        return prompts[mood] || prompts.kind;
+    }
+    
+    generateFallbackResponse(mood) {
+        const responses = this.fallbackResponses[mood];
+        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
         
         return {
             text: randomResponse,
@@ -161,21 +260,6 @@ class TalkingMirror {
         return this.moods[Math.floor(Math.random() * this.moods.length)];
     }
     
-    getKeywordResponse(message, mood) {
-        const lowerMessage = message.toLowerCase();
-        
-        for (const [keyword, responses] of Object.entries(this.keywordResponses)) {
-            if (lowerMessage.includes(keyword)) {
-                const moodResponses = responses[mood];
-                if (moodResponses && moodResponses.length > 0) {
-                    return moodResponses[Math.floor(Math.random() * moodResponses.length)];
-                }
-            }
-        }
-        
-        return null;
-    }
-    
     displayResponse(response) {
         this.responseBox.innerHTML = `<p>${response.text}</p>`;
         this.responseBox.className = `response-box ${response.mood}`;
@@ -186,7 +270,8 @@ class TalkingMirror {
             userMessage: userMessage,
             mirrorResponse: response.text,
             mood: response.mood,
-            timestamp: new Date().toLocaleString()
+            timestamp: new Date().toLocaleString(),
+            isAI: this.isUsingAI
         };
         
         this.history.unshift(historyItem);
@@ -209,7 +294,10 @@ class TalkingMirror {
         this.historyContent.innerHTML = this.history.map(item => `
             <div class="history-item">
                 <div class="user-message">"${item.userMessage}"</div>
-                <div class="mirror-response">🪞 ${item.mirrorResponse}</div>
+                <div class="mirror-response">
+                    🪞 ${item.mirrorResponse}
+                    ${item.isAI ? '<span class="ai-badge">🤖 AI</span>' : '<span class="fallback-badge">📝</span>'}
+                </div>
                 <div class="timestamp">${item.timestamp}</div>
             </div>
         `).join('');
@@ -238,6 +326,7 @@ class TalkingMirror {
 }
 
 // Initialize the app when the page loads
+let talkingMirror;
 document.addEventListener('DOMContentLoaded', () => {
-    new TalkingMirror();
+    talkingMirror = new TalkingMirror();
 }); 

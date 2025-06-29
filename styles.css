@@ -233,12 +233,68 @@ button:active {
 .history-item .mirror-response {
     color: #666;
     font-style: italic;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .history-item .timestamp {
     font-size: 0.8rem;
     color: #999;
     margin-top: 8px;
+}
+
+.api-status {
+    background: rgba(255,255,255,0.2);
+    border-radius: 25px;
+    padding: 10px 20px;
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.api-status span {
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.reset-btn {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0;
+}
+
+.reset-btn:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-1px);
+}
+
+.ai-badge, .fallback-badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.ai-badge {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+}
+
+.fallback-badge {
+    background: #e0e0e0;
+    color: #666;
 }
 
 footer {
